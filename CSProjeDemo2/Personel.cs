@@ -5,7 +5,7 @@
         public string Name { get; set; } = "";
         public string Title { get; set; } = "";
         public int WorkingHours { get; set; } = 0;
-        public decimal HourlyRate { get; set; } = 500m;
+        public decimal HourlyRate { get; set; } = 0;
         public decimal Bonus { get; set; } = 0m;
 
         public abstract decimal MaasHesapla(decimal HourlyRate, int WorkingHours, decimal Bonus);

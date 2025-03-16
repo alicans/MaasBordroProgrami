@@ -2,51 +2,53 @@
 
 namespace CSProjeDemo2
 {
-    class MaasBordro
+    public class MaasBordro
     {
-        /* Şirketteki her çalışanın maaş bordrosunu oluşturur. Ayrıca ayda 10 saatten az çalışan personelin ayrıntılarının bir özetini de oluşturur.
-        Hesaplanan maaş bilgileri her personelin adına açılan klasörün içersine maaş tarih bilgisiyle birlikte .json formatında kayıt edilecektir.
-
-        Örnek Json Dosyası:
-        Maas Bordro, SUBAT 2020
-        {
-        "Personel Ismi": "Beyazıt",
-        "Calisma Saati": 200,
-        "Ana Odeme": "₺9.000,00",
-        "Mesai": "₺1.000,00"
-        "Toplam Odeme": "₺10.000,00"
-        }
-
-        • Program sonunda maaş hesabı yapılan tüm personelin rapor görüntüsünün ekrana yazdırılmasını ve ayrıca 150 saat az çalışan personellerin bilgilerinin belirtilmesi gerekmektedir.
-         */
-
+        /// <summary>
+        /// Personel için bordro oluşturur ve json dosyasına kaydeder.
+        /// </summary>
+        /// <param name="personel">Personel nesnesi </param>
+        /// <param name="ayYil">Bordro ay ve yıl bilgisi</param>
         public static void BordroKaydet(Personel personel, string ayYil)
         {
+            // Ücret hesaplamaları
+            var anaOdeme = Math.Min(personel.WorkingHours, 180) * personel.HourlyRate;
+            var toplamOdeme = personel.MaasHesapla(personel.HourlyRate, personel.WorkingHours, personel.Bonus);
+            var mesai = toplamOdeme - anaOdeme - personel.Bonus;
+
+            // json dosyasına yazılacak bordro verilerini oluşturalım
             var bordro = new
             {
                 PersonelIsmi = personel.Name,
                 CalismaSaati = personel.WorkingHours,
-                AnaOdeme = string.Format("₺{0:N2}", Math.Min(personel.WorkingHours, 180) * personel.HourlyRate),
-                Mesai = personel.WorkingHours > 180 ? string.Format("₺{0:N2}", (personel.WorkingHours - 180) * personel.HourlyRate * 1.5m) : "₺0,00",
-                ToplamOdeme = string.Format("₺{0:N2}", personel.MaasHesapla(personel.HourlyRate, personel.WorkingHours))
+                AnaOdeme = string.Format("₺{0:N2}", anaOdeme),
+                Mesai = string.Format("₺{0:N2}", mesai),
+                ToplamOdeme = string.Format("₺{0:N2}", toplamOdeme)
             };
-
+            // personel adı ile klasör oluştur
             string klasorAdi = Path.Combine(personel.Name);
             Directory.CreateDirectory(klasorAdi);
-
+            // dosya adı ve yolunu belirtelim
             string dosyaYolu = Path.Combine(klasorAdi, ayYil + ".json");
-            File.WriteAllText(dosyaYolu, JsonSerializer.Serialize(bordro, new JsonSerializerOptions { WriteIndented = true }));
+            // json dosyasında türk lirası simgesi kullanabilmek için ayarları yapalım ve json dosyasına yazalım
+            File.WriteAllText(dosyaYolu, JsonSerializer.Serialize(bordro, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
         }
+        /// <summary>
+        /// Personel listesi için bordro raporunu gösterir.
+        /// </summary>
+        /// <param name="personeller">Personel listesi</param>
+        /// <param name="ayYil">Bordro ay ve yıl bilgisi</param>
         public static void BordroRaporuGoster(List<Personel> personeller, string ayYil)
         {
             Console.WriteLine($"\n----- {ayYil} BORDRO RAPORU -----");
             Console.WriteLine("TÜM PERSONEL RAPORU:");
             Console.WriteLine("--------------------");
 
+            // Tüm personellerin bordro bilgilerini göster
             foreach (var personel in personeller)
             {
                 Console.WriteLine($"İsim: {personel.Name}, Ünvan: {personel.Title}, Çalışma Saati: {personel.WorkingHours}, " +
-                    $"Toplam Ödeme: {string.Format("₺{0:N2}", personel.MaasHesapla(personel.HourlyRate, personel.WorkingHours))}");
+                    $"Toplam Ödeme: {string.Format("₺{0:N2}", personel.MaasHesapla(personel.HourlyRate, personel.WorkingHours, personel.Bonus))}");
             }
 
             Console.WriteLine("\n150 SAATTEN AZ ÇALIŞAN PERSONEL RAPORU:");
@@ -59,7 +61,7 @@ namespace CSProjeDemo2
                 foreach (var personel in azCalisanlar)
                 {
                     Console.WriteLine($"İsim: {personel.Name}, Ünvan: {personel.Title}, Çalışma Saati: {personel.WorkingHours}, " +
-                        $"Toplam Ödeme: {string.Format("₺{0:N2}", personel.MaasHesapla(personel.HourlyRate, personel.WorkingHours))}");
+                        $"Toplam Ödeme: {string.Format("₺{0:N2}", personel.MaasHesapla(personel.HourlyRate, personel.WorkingHours, personel.Bonus))}");
                 }
             }
             else

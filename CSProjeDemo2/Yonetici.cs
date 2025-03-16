@@ -11,12 +11,18 @@
             Title = "Yonetici";
         }
 
-        // Maaş hesaplama işlemi
+        /// <summary>
+        /// Yönetici maaşını hesaplar.
+        /// </summary>
+        /// <param name="hourlyRate">Saatlik ücret </param>
+        /// <param name="workingHours">Çalışma saati </param>   
+        /// <param name="Bonus">Bonus Ek Ödeme </param>
+        /// <returns>Toplam ödeme </returns>
         public override decimal MaasHesapla(decimal hourlyRate, int workingHours, decimal Bonus)
         {
             // Saatlik ücret kontrolü
             if (hourlyRate < MIN_HOURLY_RATE)
-                throw new ArgumentException($"Yöneticinin saatlik ücreti {MIN_HOURLY_RATE} TL'den küçük olamaz.");
+                throw new Exception($"Yöneticinin saatlik ücreti {MIN_HOURLY_RATE} TL'den küçük olamaz.");
 
             // Ana maaş hesaplama
             decimal Salary = hourlyRate * workingHours;
